@@ -3,10 +3,7 @@
 
 def naive_search(text, pattern):
     """Return every starting index of pattern in text."""
-    if not pattern:
-        return []
-    return [i for i in range(len(text) - len(pattern) + 1)
-            if text[i:i + len(pattern)] == pattern]
+    
 
     positions = []
     for start in range(len(text) - len(pattern) + 1):
