@@ -8,6 +8,17 @@ def naive_search(text, pattern):
     return [i for i in range(len(text) - len(pattern) + 1)
             if text[i:i + len(pattern)] == pattern]
 
+    positions = []
+    for start in range(len(text) - len(pattern) + 1):
+        matched = True
+        for offset in range(len(pattern)):
+            if text[start + offset] != pattern[offset]:
+                matched = False
+                break
+        if matched:
+            positions.append(start)
+    return positions
+
 
 def kmp_search(text, pattern):
     """Return every starting index using Knuth-Morris-Pratt matching."""
@@ -53,6 +64,11 @@ def main():
     text = input("> ")
     raw_patterns = input("Keywords or phrases, separated by commas: ")
     patterns = list(dict.fromkeys(p.strip() for p in raw_patterns.split(",") if p.strip()))
+    patterns = []
+    for item in raw_patterns.split(","):
+        pattern = item.strip()
+        if pattern and pattern not in patterns:
+            patterns.append(pattern)
 
     if not text or not patterns:
         print("Please enter text and at least one keyword.")
@@ -63,7 +79,13 @@ def main():
         positions = kmp_search(text, pattern)
         print(f"\n{pattern!r}: {len(positions)} match(es)")
         if positions:
+            position_text = ""
+            for index in range(len(positions)):
+                if index > 0:
+                    position_text += ", "
+                position_text += str(positions[index])
             print("  Positions (zero-based): " + ", ".join(map(str, positions)))
+            print("  Positions (zero-based): " + position_text)
             for position in positions:
                 print("  " + highlight_context(text, position, position + len(pattern)))
         else:
@@ -101,4 +123,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
