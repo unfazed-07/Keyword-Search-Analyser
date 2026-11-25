@@ -3,7 +3,8 @@
 
 def naive_search(text, pattern):
     """Return every starting index of pattern in text."""
-    
+    if not pattern:
+        return []
 
     positions = []
     for start in range(len(text) - len(pattern) + 1):
@@ -17,33 +18,52 @@ def naive_search(text, pattern):
     return positions
 
 
+def build_lps(pattern):
+    """Build the LPS (Longest Prefix Suffix) table for a pattern."""
+    lps = [0] * len(pattern)
+    prefix_length = 0
+    index = 1
+
+    while index < len(pattern):
+        if pattern[index] == pattern[prefix_length]:
+            prefix_length += 1
+            lps[index] = prefix_length
+            index += 1
+        elif prefix_length > 0:
+            prefix_length = lps[prefix_length - 1]
+        else:
+            lps[index] = 0
+            index += 1
+
+    return lps
+
+
 def kmp_search(text, pattern):
     """Return every starting index using Knuth-Morris-Pratt matching."""
     if not pattern:
         return []
 
-    prefix = [0] * len(pattern)
-    matched = 0
-    for i in range(1, len(pattern)):
-        while matched and pattern[i] != pattern[matched]:
-            matched = prefix[matched - 1]
-        if pattern[i] == pattern[matched]:
-            matched += 1
-            prefix[i] = matched
-
+    n = len(text)
+    m = len(pattern)
+    lps = build_lps(pattern)
     positions = []
-    i = matched = 0
-    while i < len(text):
-        if text[i] == pattern[matched]:
+    i = 0
+    j = 0
+
+    while i < n:
+        if pattern[j] == text[i]:
             i += 1
-            matched += 1
-            if matched == len(pattern):
-                positions.append(i - matched)
-                matched = prefix[matched - 1]
-        elif matched:
-            matched = prefix[matched - 1]
-        else:
-            i += 1
+            j += 1
+
+        if j == m:
+            positions.append(i - j)
+            j = lps[j - 1]
+        elif i < n and pattern[j] != text[i]:
+            if j != 0:
+                j = lps[j - 1]
+            else:
+                i += 1
+
     return positions
 
 
@@ -60,7 +80,6 @@ def main():
     print("Enter a document (one line):")
     text = input("> ")
     raw_patterns = input("Keywords or phrases, separated by commas: ")
-    patterns = list(dict.fromkeys(p.strip() for p in raw_patterns.split(",") if p.strip()))
     patterns = []
     for item in raw_patterns.split(","):
         pattern = item.strip()
@@ -81,7 +100,6 @@ def main():
                 if index > 0:
                     position_text += ", "
                 position_text += str(positions[index])
-            print("  Positions (zero-based): " + ", ".join(map(str, positions)))
             print("  Positions (zero-based): " + position_text)
             for position in positions:
                 print("  " + highlight_context(text, position, position + len(pattern)))
@@ -120,3 +138,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
